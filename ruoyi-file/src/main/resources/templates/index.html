@@ -1,0 +1,192 @@
+<#assign ctx=springMacroRequestContext.contextPath/>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>主页</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="${ctx}/image/favicon.ico">
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/mobile/need/layer.css"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css"/>
+    <link rel="stylesheet" href="${ctx}/style/index.css"/>
+</head>
+<body class="layui-layout-body layui-layout-admin">
+<input id="basePath" type="hidden" value="${ctx}"/>
+
+<!-- 头部 -->
+<div class="layui-header">
+    <!--logo信息-->
+    <div class="layui-logo" style="background:#393D49"><img src="${ctx}/image/face.png"/>&nbsp;&nbsp;WebToolPlus</div>
+    <ul class="layui-nav layui-layout-left">
+        <li class="layui-nav-item">
+            <a href="javascript:;" id="switchNav" style="color: #f4f5f9"><i class="layui-icon">&#xe668;</i></a>
+        </li>
+        <!--顶部菜单栏-->
+        <!--<li class="layui-nav-item"><a href="">最新活动</a></li>-->
+    </ul>
+
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item">
+            <i class="layui-icon">&#xe667;</i>&nbsp;<span id="nowTime"></span>
+        </li>
+        <!--
+        <li class="layui-nav-item">
+            <a href="javascript:;" lay-tips="点击清除缓存" id="clearCache" style="color: #f4f5f9"><i class="layui-icon">&#xe65f;</i></a>
+        </li>
+        -->
+        <li class="layui-nav-item" id="userInfo">
+            <a href="javascript:;" style="color: #f4f5f9">
+                <img src="${ctx}${userInfo.userHead}"
+                     class="layui-nav-img userAvatar" width="35" height="35"/>
+                <i class="layui-icon">&#xe66f;</i>
+                <cite class="adminName">${userInfo.userName}</cite>
+            </a>
+            <!--设置菜单栏-->
+            <dl class="layui-nav-child">
+                <dd>
+                    <a href="javascript:openInfoPage();">
+                        <i class="layui-icon">&#xe66f;</i><cite>个人资料</cite>
+                    </a>
+                </dd>
+                <dd>
+                    <a href="javascript:openPassPage();">
+                        <i class="layui-icon">&#xe673;</i><cite>修改密码</cite>
+                    </a>
+                </dd>
+                <dd>
+                    <a href="javascript:showNotice();">
+                        <i class="layui-icon">&#xe645;</i><cite>系统公告</cite>
+                    <#--<span class="layui-badge-dot"></span>-->
+                    </a>
+                </dd>
+                <dd>
+                    <a href="javascript:;systemSetting()">
+                        <i class="layui-icon">&#xe620;</i><cite>功能设定</cite>
+                    <#--<span class="layui-badge-dot"></span>-->
+                    </a>
+                </dd>
+                <dd>
+                    <a href="javascript:;" id="clearCache">
+                        <i class="layui-icon">&#xe669;</i><cite>清除缓存</cite>
+                    </a>
+                </dd>
+                <dd><a href="javascript:logout()">
+                    <i class="layui-icon">&#xe65c;</i><cite>退出系统</cite></a>
+                </dd>
+            </dl>
+        </li>
+    </ul>
+</div>
+
+<!-- 侧边菜单栏 -->
+<div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll navBar">
+        <ul class="layui-nav layui-nav-tree" id="index-nav" lay-filter="index-nav">
+            <!--同步生成菜单-->
+            <#if menuList??>
+                <#list menuList as menuOne>
+                <li class="layui-nav-item">
+                    <a href="javascript:void(0);">
+                        <i class="layui-icon" data-icon="${menuOne.menuIcon}">${menuOne.menuIcon}</i>
+                        <span><cite>${menuOne.menuName}</cite></span>
+                        <span class="layui-nav-more"></span>
+                    </a>
+                    <#if menuOne.children??>
+                        <#list menuOne.children as menuTwo>
+                        <dl class="layui-nav-child">
+                            <dd>
+                                <a href="javascript:void(0);" data-url="${menuTwo.menuPath}">
+                                    <i class="layui-icon" data-icon="${menuTwo.menuIcon}">${menuTwo.menuIcon}</i>
+                                    <span><cite>${menuTwo.menuName}</cite></span>
+                                </a>
+                            </dd>
+                        </dl>
+                        </#list>
+                    </#if>
+                </li>
+                </#list>
+            </#if>
+        </ul>
+    </div>
+</div>
+
+<!-- 右侧内容 -->
+<div class="layui-body">
+    <div class="layui-tab mag0" lay-filter="bodyTab" id="top_tabs_box" style="margin: 0px;">
+
+        <!--固定首页窗口-->
+        <ul class="layui-tab-title top_tab" id="top_tabs">
+            <li class="layui-this" lay-id=""><i class="layui-icon">&#xe68e;</i><cite>首页</cite></li>
+        </ul>
+
+        <!--tab工具-->
+        <ul class="layui-nav closeBox">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <i class="layui-icon">&#xe716;</i>
+                    <span style="margin-left: 5px;">页面操作</span>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd>
+                        <a href="javascript:;" class="refresh refreshThis"><i class="layui-icon">&#xe666;</i>刷新当前</a>
+                    </dd>
+                    <dd>
+                        <a href="javascript:;" class="closePageOther"><i class="layui-icon">&#x1006;</i>关闭其他</a>
+                    </dd>
+                    <dd>
+                        <a href="javascript:;" class="closePageAll"><i class="layui-icon">&#x1006;</i>关闭全部</a>
+                    </dd>
+                </dl>
+            </li>
+        </ul>
+
+        <!--子页面-->
+        <div class="layui-tab-content clildFrame">
+            <div class="layui-tab-item layui-show">
+                <iframe src="${ctx}/main"></iframe>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!--底部版权信息-->
+<div class="layui-footer footer" style="background:#393D49">
+    <p>
+        <span style="color: #bab0a0;">2018 &copy; powerd by
+        <a href="https://gitee.com/MaxBill/WebBoot" style="color: #01AAED;" target="_blank">WebBoot</a>
+        </span>
+    </p>
+</div>
+
+<!-- 手机屏幕遮罩层 -->
+<div class="site-mobile-shade"></div>
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/lib/tab.js"></script>
+<script type="text/javascript" src="${ctx}/script/index.js"></script>
+<script type="text/javascript">
+    window.onload = function () {
+        var show = document.getElementById("nowTime");
+        setInterval(function () {
+            var time = new Date();   // 程序计时的月从0开始取值后+1
+            var m = time.getMonth() + 1;
+            var t = time.getFullYear() + "-" + m + "-"
+                    + time.getDate() + " " + time.getHours() + ":"
+                    + time.getMinutes() + ":" + time.getSeconds();
+            show.innerHTML = t;
+        }, 1000);
+    };
+    console.log("happy~");
+    console.log("${ctx}");
+</script>
+</body>
+</html>

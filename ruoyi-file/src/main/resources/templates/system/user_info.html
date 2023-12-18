@@ -1,0 +1,73 @@
+<#assign ctx=springMacroRequestContext.contextPath/>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css"/>
+</head>
+<body>
+<input id="basePath" type="hidden" value="${ctx}"/>
+<div style="width: 100%;text-align: center;margin-top: 10px;margin-bottom: 15px">
+    <img style="border: 1px solid #f4f5f9;border-radius: 50%;" src="${ctx}${userInfo.userHead}"
+         width="150" height="150"/>
+</div>
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户名称</label>
+        <div class="layui-input-inline">
+            <input type="text" value="${userInfo.userName}" class="layui-input" readonly>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">我的角色</label>
+        <div class="layui-input-inline">
+            <input type="text" value="系统用户" readonly class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">不可修改，只有管理员有该权限</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">邮箱地址</label>
+        <div class="layui-input-inline">
+            <input type="text" value="${userInfo.userMail}" class="layui-input" readonly>
+        </div>
+        <div class="layui-form-mid layui-word-aux">用于接收系统通知邮件</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">账户类型</label>
+        <div class="layui-input-inline">
+             <#if (userInfo.userType)=="0">
+                 <input type="text" value="系统用户" class="layui-input" readonly>
+             <#else>
+                 <input type="text" value="普通用户" class="layui-input" readonly>
+             </#if>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">账户状态</label>
+        <div class="layui-input-inline">
+            <#if (userInfo.userStatus)=="y">
+                <input type="text" value="正常" class="layui-input" readonly>
+            <#else>
+                <input type="text" value="异常" class="layui-input" readonly>
+            </#if>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">注册时间</label>
+        <div class="layui-input-inline">
+            <input type="text" value="${userInfo.createTime?string('yyyy-MM-dd hh:mm:ss')}"
+                   class="layui-input" readonly>
+        </div>
+    </div>
+</div>
+</body>
+</html>
