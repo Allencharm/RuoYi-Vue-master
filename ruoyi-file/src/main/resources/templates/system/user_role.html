@@ -1,0 +1,53 @@
+<#assign ctx=springMacroRequestContext.contextPath/>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/ztree/css/zTreeStyle/zTreeStyle.css"/>
+</head>
+<body style="width: 690px;">
+<input id="basePath" type="hidden" value="${ctx}"/>
+<input id="userId" type="hidden" value="${userId}">
+<input id="roleId" type="hidden" value="${roleId}">
+<div style="margin: auto 10px;width:100%;height:auto;">
+    <div class="layui-inline" style="margin-top: 10px">
+        <div class="layui-input-inline">
+            <input id="roleName" type="text" class="layui-input searchVal" placeholder="请输入角色名称"/>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" id="btnQuery" type="button">查询</button>
+        </div>
+    </div>
+</div>
+<div style="width:100%;height:auto;">
+    <div style="margin-left:10px;width:400px;float:left;height:auto;">
+        <table id="dataList" lay-filter="dataList"></table>
+    </div>
+    <div style="margin-left:5px;width:270px;float:right;height: auto;">
+        <div style="border:1px solid gainsboro;margin-top: 10px;height: 469px;">
+            <ul id="menuTree" name="menuTree" class="ztree"></ul>
+        </div>
+    </div>
+</div>
+<div class="layui-form-item" style="text-align:center; width:100%;position:fixed; bottom:0;">
+    <input type="button" id="userRoleBtn" value="提交" class="layui-btn layui-btn-sm"/>
+    <input type="button" id="backRoleBtn" value="取消" class="layui-btn layui-btn-sm layui-btn-warn"/>
+</div>
+
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/ztree/zTree.js"></script>
+<script type="text/javascript" src="${ctx}/script/user_role.js"></script>
+</body>
+</html>

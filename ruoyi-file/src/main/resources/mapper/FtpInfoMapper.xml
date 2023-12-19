@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruoyi.file.dao.FtpInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.ruoyi.file.bean.FtpInfo">
+        <id column="FTP_ID" property="ftpId" jdbcType="VARCHAR"/>
+        <result column="FTP_NAME" property="ftpName" jdbcType="VARCHAR"/>
+        <result column="FTP_USER" property="ftpUser" jdbcType="VARCHAR"/>
+        <result column="FTP_PASS" property="ftpPass" jdbcType="VARCHAR"/>
+        <result column="FTP_PKEY" property="ftpPkey" jdbcType="VARCHAR"/>
+        <result column="FTP_HOST" property="ftpHost" jdbcType="VARCHAR"/>
+        <result column="FTP_PORT" property="ftpPort" jdbcType="VARCHAR"/>
+        <result column="FTP_MODE" property="ftpMode" jdbcType="VARCHAR"/>
+        <result column="FTP_TYPE" property="ftpType" jdbcType="VARCHAR"/>
+        <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="CREATE_USER" property="createUser" jdbcType="VARCHAR"/>
+        <result column="UPDATE_USER" property="updateUser" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <insert id="insert" parameterType="com.ruoyi.file.bean.FtpInfo">
+        insert into T_RTB_FTP (
+        FTP_ID,
+        FTP_NAME,
+        FTP_USER,
+        FTP_PASS,
+        FTP_HOST,
+        FTP_PORT,
+        FTP_TYPE,
+        FTP_MODE,
+        CREATE_TIME,
+        CREATE_USER
+        )values(
+        #{ftpId,jdbcType=VARCHAR},
+        #{ftpName,jdbcType=VARCHAR},
+        #{ftpUser,jdbcType=VARCHAR},
+        #{ftpPass,jdbcType=VARCHAR},
+        #{ftpHost,jdbcType=VARCHAR},
+        #{ftpPort,jdbcType=VARCHAR},
+        #{ftpType,jdbcType=VARCHAR},
+        #{ftpMode,jdbcType=VARCHAR},
+        #{createTime,jdbcType=TIMESTAMP},
+        #{createUser,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="update">
+        update T_RTB_FTP
+        <set>
+            <if test="ftpName != null">
+                FTP_NAME = #{ftpName,jdbcType=VARCHAR},
+            </if>
+            <if test="ftpUser != null">
+                FTP_USER = #{ftpUser,jdbcType=VARCHAR},
+            </if>
+            <if test="ftpPass != null">
+                FTP_PASS = #{ftpPass,jdbcType=VARCHAR},
+            </if>
+            <if test="ftpHost != null">
+                FTP_HOST = #{ftpHost,jdbcType=VARCHAR},
+            </if>
+            <if test="ftpPort != null">
+                FTP_PORT = #{ftpPort,jdbcType=VARCHAR},
+            </if>
+            <if test="ftpType != null">
+                FTP_TYPE = #{ftpType,jdbcType=VARCHAR},
+            </if>
+            <if test="ftpMode != null">
+                FTP_MODE = #{ftpMode,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateUser != null">
+                UPDATE_USER = #{updateUser,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where FTP_ID = #{ftpId,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete">
+        delete from T_RTB_FTP where FTP_ID = #{ftpId,jdbcType=VARCHAR}
+    </delete>
+
+    <select id="selectFtpInfoByFtpId" resultMap="BaseResultMap">
+        select
+        FTP_ID,
+        FTP_NAME,
+        FTP_USER,
+        FTP_PASS,
+        FTP_PKEY,
+        FTP_HOST,
+        FTP_PORT,
+        FTP_TYPE,
+        FTP_MODE,
+        CREATE_TIME,
+        CREATE_USER
+        from T_RTB_FTP
+        where
+        FTP_ID= #{ftpId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectFtpInfoList" resultMap="BaseResultMap" parameterType="com.ruoyi.file.bean.FtpInfo">
+        select
+        FTP_ID,
+        FTP_NAME,
+        FTP_USER,
+        FTP_PASS,
+        FTP_HOST,
+        FTP_PORT,
+        FTP_MODE,
+        FTP_TYPE,
+        CREATE_TIME
+        from T_RTB_FTP
+        <if test="ftpName != null and ftpName != ''">
+            where FTP_NAME LIKE CONCAT(CONCAT('%',#{ftpName},'%'))
+        </if>
+    </select>
+
+</mapper>

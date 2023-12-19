@@ -1,0 +1,52 @@
+<!--<#assign ctx=springMacroRequestContext.contextPath/>-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css" media="all"/>
+</head>
+<body>
+
+<input id="basePath" type="hidden" value="${ctx}"/>
+
+<div class="layui-card layui-card-body">
+    <form class="layui-form">
+        <div class="layui-row">
+            <div class="layui-col-xs3 layui-col-sm3 layui-col-md3">
+                <div class="layui-inline">
+                    <div class="layui-input-inline">
+                        <input id="ftpName" type="text" class="layui-input searchVal" placeholder="请输入FTP名称"/>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
+                <div class="layui-inline">
+                    <button class="layui-btn" id="btnQuery" type="button">查询</button>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layui-btn-normal" type="button" id="btnAddPage">添加</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table id="dataList" lay-filter="dataList"></table>
+
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/lib/tab.js"></script>
+<script type="text/javascript" src="${ctx}/script/common.js"></script>
+<script type="text/javascript" src="${ctx}/script/ftp_list.js"></script>
+</body>
+</html>

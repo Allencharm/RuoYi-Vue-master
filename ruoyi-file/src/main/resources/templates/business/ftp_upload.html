@@ -1,0 +1,72 @@
+<!--<#assign ctx=springMacroRequestContext.contextPath/>-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css" media="all"/>
+</head>
+<body>
+<input id="basePath" type="hidden" value="${ctx}"/>
+<input id="ftpId" type="hidden" value="${ftpId}"/>
+<input id="ftpType" type="hidden" value="${ftpType}"/>
+<input id="currPath" type="hidden" value="${currPath}"/>
+
+<div class="layui-upload-drag" id="uploadBtn" style="display:block;margin: 0 auto;margin-top: 50px">
+    <i class="layui-icon"></i>
+    <p>点击上传，或将文件拖拽到此处</p>
+</div>
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script>
+    var basePath = $("#basePath").val();
+    var uploadUrl;
+    $(document).ready(function () {
+        switch ($("#ftpType").val()) {
+            case '1':
+                break;
+            case '2':
+                break;
+            case '3':
+                uploadUrl = basePath + '/rtb/sftp/upload';
+                break;
+        }
+    });
+
+    layui.use('upload', function () {
+        var upload = layui.upload;
+        //拖拽上传
+        upload.render({
+            elem: '#uploadBtn',
+            url: uploadUrl,
+            accept: 'file',
+            data: {
+                ftpId: $("#ftpId").val(),
+                currPath: $("#currPath").val()
+            },
+            done: function (res) {
+                //当文件全部被提交后才触发
+                layer.alert("上传完成", {
+                    skin: 'layui-layer-molv',
+                    closeBtn: 0
+                }, function () {
+                    //关闭弹出层
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                    window.parent.listNextFile(window.parent.currPath);
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!--<#assign ctx=springMacroRequestContext.contextPath/>-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/ztree/css/metroStyle/metroStyle.css"/>
+</head>
+<body>
+<input id="basePath" type="hidden" value="${ctx}"/>
+<input id="ftpId" type="hidden" value="${ftpId}"/>
+<input id="ftpType" type="hidden" value="${ftpType}"/>
+<input id="filePath" type="hidden" value="${filePath}"/>
+<div id="pathText" style="margin:0 auto;height: 20px;line-height: 20px;color: #3F3F3F"></div>
+<input id="movePath" type="hidden"/>
+<div style="border:1px solid gainsboro;margin:0 auto;height: 480px;overflow:auto">
+    <ul id="pathTree" name="pathTree" class="ztree"></ul>
+</div>
+<div class="layui-form-item" style="text-align:center; width:100%;position:fixed; bottom:0;">
+    <input type="button" id="moveFileBtn" value="移动" class="layui-btn layui-btn-sm"/>
+    <input type="button" id="backFileBtn" value="取消" class="layui-btn layui-btn-sm layui-btn-warn"/>
+</div>
+
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/ztree/zTree.js"></script>
+<script type="text/javascript" src="${ctx}/script/ftp_move.js"></script>
+</body>
+</html>

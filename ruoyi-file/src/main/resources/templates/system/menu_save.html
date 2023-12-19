@@ -1,0 +1,133 @@
+<#assign ctx=springMacroRequestContext.contextPath/>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css"/>
+</head>
+<body>
+
+<input id="basePath" type="hidden" value="${ctx}"/>
+
+<form class="layui-form" id="saveMenuForm">
+    <br>
+    <div class="layui-form-item">
+        <label class="layui-form-label">父级菜单</label>
+        <div class="layui-input-inline" style="margin-right: 30px">
+            <select name="menuPid" id="menuPid" lay-filter="menuPid">
+                <option value="">---请选择父菜单---</option>
+                 <#list parentMenuList as menu>
+                     <option value="${menu.menuId}">${menu.menuName}</option>
+                 </#list>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单名称</label>
+        <div class="layui-input-inline" style="margin-right: 30px">
+            <input type="text" class="layui-input" placeholder="请输入菜单名称"
+                   lay-verify="required" name="menuName" id="menuName">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单代码</label>
+        <div class="layui-input-inline" style="margin-right: 30px">
+            <input type="text" class="layui-input" placeholder="请输入菜单代码"
+                   lay-verify="required" name="menuCode" id="menuCode">
+        </div>
+    </div>
+    <div class="layui-form-item" style="display: none" id="menuPathDiv">
+        <label class="layui-form-label">菜单路径</label>
+        <div class="layui-input-inline" style="margin-right: 30px">
+            <input type="text" class="layui-input" placeholder="请输入菜单路径"
+                   name="menuPath" id="menuPath">
+        </div>
+    </div>
+    <!--
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单图标</label>
+        <div class="layui-input-inline" style="margin-right: 30px">
+            <input type="text" class="layui-input" placeholder="请输入菜单名称"
+                   lay-verify="required" name="menuIcon" id="menuIcon">
+        </div>
+    </div>
+    -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单显示</label>
+        <div class="layui-input-block" style="margin-right: 30px">
+            <input type="checkbox" name="menuShow" lay-skin="switch" lay-text="显示|隐藏" checked>
+        </div>
+    </div>
+    <div class="layui-form-item" style="text-align:center; width:100%;position:fixed; bottom:0;">
+        <input type="button" value="添加" class="layui-btn layui-btn-sm" lay-filter="saveMenuBtn" lay-submit/>
+        <input type="button" id="backRoleBtn" value="取消" class="layui-btn layui-btn-sm layui-btn-warn"/>
+    </div>
+</form>
+
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script>
+    var basePath = $("#basePath").val();
+    $(document).ready(function () {
+        //渲染表单
+        layui.use('form', function () {
+            var form = layui.form;
+            form.render();
+            //监听提交
+            form.on('submit(saveMenuBtn)', function (data) {
+                submitSaveMenuForm();
+                return false;
+            });
+            //监听select
+            form.on('select(menuPid)', function (data) {
+                if (data.value != "") {
+                    $("#menuPathDiv").css("display", "block");
+                    $("#menuPath").attr("lay-verify", "required");
+                } else {
+                    $("#menuPathDiv").css("display", "none");
+                    $("#menuPath").removeAttr("lay-verify");
+                }
+            });
+        });
+        //注册监听事件
+        $("#backRoleBtn").on("click", function () {
+            //关闭弹出层
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        });
+
+
+    });
+
+    function submitSaveMenuForm() {
+        $.ajax({
+            type: "post",
+            url: basePath + '/sys/menu/insert',
+            data: $('#saveMenuForm').serialize(),
+            success: function (data) {
+                layer.alert(data.msgs, {
+                    skin: 'layui-layer-molv',
+                    closeBtn: 0
+                }, function () {
+                    //关闭弹出层
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                    //刷新父页面
+                    parent.location.reload();
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>

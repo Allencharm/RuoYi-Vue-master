@@ -1,0 +1,190 @@
+<!--<#assign ctx=springMacroRequestContext.contextPath/>-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layer/theme/default/layer.css" media="all"/>
+</head>
+<body>
+<input id="basePath" type="hidden" value="${ctx}"/>
+<input id="ftpId" type="hidden" value="${ftpId}"/>
+<input id="ftpType" type="hidden" value="${ftpType}"/>
+<input id="currPath" type="hidden" value="${currPath}"/>
+
+<div class="layui-upload" style="width: 98%；margin: 0 auto;">
+    <div class="layui-upload-list">
+        <table class="layui-table">
+            <thead>
+            <#--<tr>-->
+            <#--<th>文件名</th>-->
+            <#--<th>大小</th>-->
+            <#--<th>状态</th>-->
+            <#--<th>操作</th>-->
+            <#--</tr>-->
+            <tr>
+                <th>文件名</th>
+                <th>大小</th>
+            </tr>
+            </thead>
+            <tbody id="fileList"></tbody>
+        </table>
+    </div>
+    <div style="text-align: center; width:100%;position:fixed; bottom:20px;">
+        <button type="button" class="layui-btn" id="pickFileBtn">选择文件</button>
+        <button type="button" class="layui-btn" id="saveFileBtn">开始上传</button>
+    </div>
+</div>
+<script type="text/javascript" src="${ctx}/plugin/jquery/jquery.min-1.9.1.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layui/layui.js"></script>
+<script type="text/javascript" src="${ctx}/plugin/layer/layer.js"></script>
+<script>
+    var basePath = $("#basePath").val();
+    var uploadUrl;
+    $(document).ready(function () {
+        switch ($("#ftpType").val()) {
+            case '1':
+                break;
+            case '2':
+                break;
+            case '3':
+                uploadUrl = basePath + '/rtb/sftp/upload';
+                break;
+        }
+    });
+
+    layui.use('upload', function () {
+        var upload = layui.upload;
+        var fileListView = $('#fileList');
+        //选完文件后不自动上传
+        upload.render({
+            elem: '#pickFileBtn',
+            url: uploadUrl,
+            accept: 'file',
+            auto: false,
+            bindAction: '#saveFileBtn',
+            data: {
+                ftpId: $("#ftpId").val(),
+                currPath: $("#currPath").val()
+            },
+            before: function (obj) {
+                obj.preview(function (index, file) {
+                    var tr = $(['<tr id="upload-' + index + '">',
+                        '<td>' + file.name + '</td>',
+                        '<td>' + (file.size / 1014).toFixed(1) + 'kb</td>',
+                        '</tr>'].join(''));
+                    fileListView.append(tr);
+                });
+            },
+            done: function (res) {
+                layer.alert("上传完成", {
+                    skin: 'layui-layer-molv',
+                    closeBtn: 0
+                }, function () {
+                    //关闭弹出层
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                    window.parent.listNextFile(window.parent.currPath);
+                });
+            }
+        });
+    });
+
+    // layui.use('upload', function () {
+    //     var upload = layui.upload;
+    //     //多文件列表示例
+    //     var files;
+    //     var fileListView = $('#fileList');
+    //     var uploadListObj = upload.render({
+    //         elem: '#pickFileBtn',
+    //         url: uploadUrl,
+    //         accept: 'file',
+    //         multiple: false,
+    //         auto: false,
+    //         size: 512000,
+    //         // number: 10,
+    //         data: {
+    //             ftpId:$("#ftpId").val(),
+    //             currPath: $("#currPath").val()
+    //         },
+    //         bindAction: '#saveFileBtn',
+    //         choose: function (obj) {
+    //             files = obj.pushFile();
+    //             //读取本地文件
+    //             obj.preview(function (index, file) {
+    //                 var tr = $(['<tr id="upload-' + index + '">',
+    //                     '<td>' + file.name + '</td>',
+    //                     '<td>' + (file.size / 1014).toFixed(1) + 'kb</td>',
+    //                     '<td>等待上传</td>',
+    //                     '<td>',
+    //                     '<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>',
+    //                     '<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>',
+    //                     '</td>',
+    //                     '</tr>'].join(''));
+    //                 //单个重传
+    //                 tr.find('.demo-reload').on('click', function () {
+    //                     obj.upload(index, file);
+    //                 });
+    //                 //删除
+    //                 tr.find('.demo-delete').on('click', function () {
+    //                     //删除对应的文件
+    //                     delete files[index];
+    //                     tr.remove();
+    //                     //清空 input file 值，以免删除后出现同名文件不可选
+    //                     uploadListObj.config.elem.next()[0].value = '';
+    //                 });
+    //                 fileListView.append(tr);
+    //             });
+    //         },
+    //         done: function (res, index, upload) {
+    //             //上传成功
+    //             if (res.code == 200) {
+    //                 var tr = fileListView.find('tr#upload-' + index)
+    //                 var tds = tr.children();
+    //                 tds.eq(2).html('<span style="color: #5FB878;">上传成功</span>');
+    //                 //清空操作
+    //                 tds.eq(3).html('');
+    //                 //删除文件队列已经上传成功的文件
+    //                 return delete files[index];
+    //             }
+    //             this.error(index, upload);
+    //         },
+    //         error: function (index) {
+    //             var tr = fileListView.find('tr#upload-' + index)
+    //             var tds = tr.children();
+    //             tds.eq(2).html('<span style="color: #FF5722;">上传失败</span>');
+    //             //显示重传
+    //             tds.eq(3).find('.demo-reload').removeClass('layui-hide');
+    //         },
+    //         before: function () {
+    //             $("#pickFileBtn").attr("disabled", "disabled").addClass("layui-disabled");
+    //             $("#saveFileBtn").attr("disabled", "disabled").addClass("layui-disabled");
+    //         },
+    //         allDone: function (obj) {
+    //             console.log(obj.total); //得到总文件数
+    //             console.log(obj.successful); //请求成功的文件数
+    //             console.log(obj.aborted); //请求失败的文件数
+    //             //当文件全部被提交后才触发
+    //             layer.alert("上传完成", {
+    //                 skin: 'layui-layer-molv',
+    //                 closeBtn: 0
+    //             }, function () {
+    //                 //关闭弹出层
+    //                 var index = parent.layer.getFrameIndex(window.name);
+    //                 parent.layer.close(index);
+    //                 window.parent.listNextFile(window.parent.currPath);
+    //             });
+    //         }
+    //     });
+    // });
+</script>
+</body>
+</html>

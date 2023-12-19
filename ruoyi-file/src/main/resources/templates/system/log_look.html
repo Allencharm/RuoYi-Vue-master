@@ -1,0 +1,72 @@
+<#assign ctx=springMacroRequestContext.contextPath/>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="${ctx}/style/font/font.css"/>
+    <link rel="stylesheet" href="${ctx}/plugin/layui/css/layui.css"/>
+</head>
+<body>
+
+<table id="dataTable" lay-filter="dataTable" class="layui-table" style="width: 100%">
+    <colgroup>
+        <col width="100" minWidth="200">
+        <col width="700" minWidth="600">
+    </colgroup>
+    <tbody>
+    <tr>
+        <td>日志名称</td>
+        <td>${sysLog.logName}</td>
+    </tr>
+    <tr>
+        <td>访问用户</td>
+        <td>${sysLog.logUser}</td>
+    </tr>
+    <tr>
+        <td>请求路径</td>
+        <td>${sysLog.logUrls}</td>
+    </tr>
+    <tr>
+        <td>请求方法</td>
+        <td>${sysLog.logPath}</td>
+    </tr>
+    <tr>
+        <td>物理地址</td>
+        <td>${sysLog.logAddr}</td>
+    </tr>
+    <tr>
+        <td>请求时间</td>
+        <td>${sysLog.logTime?string('yyyy-MM-dd hh:mm:ss')}</td>
+    </tr>
+    <tr>
+        <td>请求协议</td>
+        <td>${sysLog.logMethod}</td>
+    </tr>
+    <tr>
+        <td>操作系统</td>
+        <td>${sysLog.logSystem}</td>
+    </tr>
+    <tr>
+        <td>浏览器</td>
+        <td>${sysLog.logBrowser}</td>
+    </tr>
+    <tr>
+        <td>请求报文</td>
+        <td style="height: auto;white-space: normal;word-wrap: break-word;word-break: break-all;">${sysLog.logReqParam}</td>
+    </tr>
+    <tr style="height: inherit">
+        <td>响应报文</td>
+        <td style="height: auto;white-space: normal;word-wrap: break-word;word-break: break-all;">${sysLog.logResParam}</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
