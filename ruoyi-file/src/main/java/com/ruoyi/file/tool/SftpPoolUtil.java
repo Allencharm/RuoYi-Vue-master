@@ -33,7 +33,7 @@ public class SftpPoolUtil {
         Channel channel = null;
         ChannelSftp sftp = null;
         String user = sftpBean.getFtpUser();
-        String pass = sftpBean.getFtpPass();
+        /*String pass = sftpBean.getFtpPass();*/
         String host = sftpBean.getFtpHost();
         int port = sftpBean.getFtpPort();
         String privateKey = sftpBean.getFtpPkey();
@@ -43,16 +43,16 @@ public class SftpPoolUtil {
         keyBuf.append(port);
         keyBuf.append(",");
         keyBuf.append(user);
-        keyBuf.append(",");
-        keyBuf.append(pass);
+        /*keyBuf.append(",");
+        keyBuf.append(pass);*/
         String key = keyBuf.toString();
         if (null == SFTP_CHANNEL_POOL.get(key)) {
             JSch jsch = new JSch();
             jsch.getSession(user, host, port);
             session = jsch.getSession(user, host, port);
-            if (!StringUtils.isEmpty(pass)) {
+            /*if (!StringUtils.isEmpty(pass)) {
                 session.setPassword(pass);
-            }
+            }*/
             if (!StringUtils.isEmpty(privateKey)) {
                 jsch.addIdentity(privateKey);
             }

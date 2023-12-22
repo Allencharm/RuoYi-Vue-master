@@ -1,0 +1,36 @@
+ln -s /data/softwares/node16/bin/node /usr/local/bin/node
+ln -s /data/softwares/node16/bin/npm /usr/local/bin/npm
+
+步骤详解
+1. 生成密钥对
+首先，我们需要生成一对密钥（公钥和私钥），用于在Java代码中进行登录认证。
+
+可以使用以下命令生成密钥对：
+
+ssh-keygen -t rsa
+该命令将会生成一个名为id_rsa的私钥文件和一个名为id_rsa.pub的公钥文件。
+
+2. 将公钥复制到Linux服务器
+接下来，将公钥复制到Linux服务器，以便服务器可以识别我们的公钥并进行登录认证。
+
+可以使用以下命令将公钥复制到服务器（假设服务器IP为192.168.0.1）：
+
+ssh-copy-id -i ~/.ssh/id_rsa.pub user@192.168.0.1
+这将会将公钥复制到服务器的~/.ssh/authorized_keys文件中。
+
+异常解决：
+通过 cat /etc/ssh/sshd_config 查看是否包含类似如下配置：
+PermitRootLogin no
+若是no，需要修改成yes
+PermitRootLogin yes
+
+3. 配置Linux服务器允许使用公钥登录
+为了允许使用公钥登录，我们需要在Linux服务器上进行配置。
+
+打开/etc/ssh/sshd_config文件，并确保以下配置项处于启用状态：
+
+PubkeyAuthentication yes
+PasswordAuthentication yes
+重启SSH服务以使配置生效：
+
+sudo service ssh restart
