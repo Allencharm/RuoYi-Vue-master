@@ -33,7 +33,8 @@ export default {
   },
   created() {
     // this.getList();
-    this.flowSrc = 'http://127.0.0.1:8088/rtb/ftp/file?ftpId=b6a1071d87554fa6adfa364365f6c6b6&ftpType=3';  //本地
+    //this.flowSrc = 'http://127.0.0.1:8080/rtb/ftp/file?ftpId=b6a1071d87554fa6adfa364365f6c6b6&ftpType=3';  //本地
+    this.flowSrc = 'http://127.0.0.1:8080/file/view';  //本地
     //this.flowSrc = 'http://10.190.107.146:8080/rtb/ftp/file?ftpId=fcc7639c53b84623b324321797367462&ftpType=3';  //本地
   },
   methods: {

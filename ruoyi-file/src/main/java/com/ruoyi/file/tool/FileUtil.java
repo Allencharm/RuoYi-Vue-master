@@ -4,11 +4,18 @@ import com.jcraft.jsch.*;
 import com.ruoyi.file.bean.FileBean;
 import com.ruoyi.file.bean.FtpInfo;
 import com.ruoyi.file.bean.ZTreeBean;
+import com.ruoyi.file.controller.FileApiController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.sound.midi.Soundbank;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**
@@ -18,86 +25,9 @@ import java.util.*;
  * @date 2023/10/8 19:19
  * @description:sftp链接池
  */
-public class SftpPoolUtil {
+public class FileUtil {
 
-    /**
-     * sftp连接池
-     */
-    private static final Map<String, Channel> SFTP_CHANNEL_POOL = new HashMap<>();
-
-    /**
-     * 打开sftp协议连接
-     */
-    public static ChannelSftp openSftpConnect(FtpInfo sftpBean) throws JSchException {
-        Session session = null;
-        Channel channel = null;
-        ChannelSftp sftp = null;
-        String user = sftpBean.getFtpUser();
-        String pass = sftpBean.getFtpPass();
-        String host = sftpBean.getFtpHost();
-        int port = sftpBean.getFtpPort();
-        String privateKey = sftpBean.getFtpPkey();
-        StringBuffer keyBuf = new StringBuffer();
-        keyBuf.append(host);
-        keyBuf.append(",");
-        keyBuf.append(port);
-        keyBuf.append(",");
-        keyBuf.append(user);
-        keyBuf.append(",");
-        keyBuf.append(pass);
-        String key = keyBuf.toString();
-        if (null == SFTP_CHANNEL_POOL.get(key)) {
-            JSch jsch = new JSch();
-            jsch.getSession(user, host, port);
-            session = jsch.getSession(user, host, port);
-            if (!StringUtils.isEmpty(pass)) {
-                session.setPassword(pass);
-            }
-            if (!StringUtils.isEmpty(privateKey)) {
-                jsch.addIdentity(privateKey);
-            }
-            Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
-            session.connect();
-            channel = session.openChannel("sftp");
-            channel.connect();
-            SFTP_CHANNEL_POOL.put(key, channel);
-        } else {
-            channel = SFTP_CHANNEL_POOL.get(key);
-            session = channel.getSession();
-            if (!session.isConnected()) {
-                session.connect();
-            }
-            if (!channel.isConnected()) {
-                channel.connect();
-            }
-        }
-        sftp = (ChannelSftp) channel;
-        return sftp;
-    }
-
-
-    /**
-     * 关闭协议
-     */
-    public static void closeSftpConnect(final ChannelSftp sftp) {
-        try {
-            if (sftp != null) {
-                Session session = sftp.getSession();
-                if (session != null) {
-                    if (session.isConnected()) {
-                        session.disconnect();
-                    }
-                }
-                if (sftp.isConnected()) {
-                    sftp.disconnect();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    private static Logger log = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * 执行shell命令
@@ -134,23 +64,36 @@ public class SftpPoolUtil {
         execCommand(sftp, command);
     }
 
-
-    public static void downFile(HttpServletResponse response, ChannelSftp sftp, String filePath, String fileName) throws Exception {
-        byte[] bytes = fileName.getBytes("utf-8");
-        fileName = new String(bytes, "ISO8859-1");
-        //修改响应的头部属性content-disposition值为attachment
-        response.setHeader("content-disposition", "attachment;filename=" + fileName);
-        //获取连接服务器端资源文件的输入流
-        InputStream is = sftp.get(filePath);
+    /**
+     * 下载文件
+     */
+    public static void downFile(HttpServletResponse response, String filePath, String fileName) throws IOException {
         //获取输出流
         ServletOutputStream os = response.getOutputStream();
-        //将输入流中的数据写入到输出流中
-        int len;
-        byte[] buf = new byte[1024];
-        while ((len = is.read(buf)) != -1) {
-            os.write(buf, 0, len);
+        try {
+            byte[] bytes = fileName.getBytes("utf-8");
+            fileName = new String(bytes, "ISO8859-1");
+            response.setCharacterEncoding("UTF-8");
+            //修改响应的头部属性content-disposition值为attachment
+            response.setHeader("content-disposition", "attachment;filename=" + fileName);
+            //获取连接服务器端资源文件的输入流
+            fileName = new String(bytes, "utf-8");
+            filePath.replace("\\", "/");
+            InputStream is = new FileInputStream(filePath);
+            //获取输出流
+            //ServletOutputStream os = response.getOutputStream();
+            //将输入流中的数据写入到输出流中
+            int len;
+            byte[] buf = new byte[1024];
+            while ((len = is.read(buf)) != -1) {
+                os.write(buf, 0, len);
+            }
+            os.close();
+        } catch (Exception e) {
+            log.error("file down error:{}",e);
+            e.printStackTrace();
+            os.close();
         }
-        os.close();
     }
 
     /**
@@ -241,8 +184,8 @@ public class SftpPoolUtil {
         List<ZTreeBean> fileTreeList = new ArrayList<>();
         if (StringUtils.isEmpty(id)) {
             id = KeyGeneratorUtil.getUUIDKey();
-            fileTreeList.add(new ZTreeBean(id, "全部文件", SftpPoolUtil.getHomePath(ftpUser), true));
-            List<FileBean> fileList = getFileTree(sftp, SftpPoolUtil.getHomePath(ftpUser));
+            fileTreeList.add(new ZTreeBean(id, "全部文件", FileUtil.getHomePath(ftpUser), true));
+            List<FileBean> fileList = getFileTree(sftp, FileUtil.getHomePath(ftpUser));
             if (!fileList.isEmpty()) {
                 for (FileBean fileBean : fileList) {
                     fileTreeList.add(new ZTreeBean(KeyGeneratorUtil.getUUIDKey(), id, fileBean.getFileName(), fileBean.getFilePath(), true));
@@ -312,17 +255,28 @@ public class SftpPoolUtil {
      */
     public static String getLastPath(String ftpUser, String filePath) {
         filePath = getCurrPath(ftpUser, filePath);
-        String lastPath;
+        String lastPath = "";
         String basePath = getHomePath(ftpUser);
         if (basePath.equals(filePath)) {
             //根目录
             lastPath = basePath;
         } else {
-            String[] pathArray = filePath.replace(basePath, "/").split("/", -1);
+            /*String[] pathArray = filePath.replace(basePath, "/").split("/", -1);
             lastPath = pathArray[pathArray.length - 2];
             lastPath = filePath.replace(lastPath, "");
-            lastPath = lastPath.substring(0, lastPath.length() - 1);
+            lastPath = lastPath.substring(0, lastPath.length() - 1);*/
+
+            String[] pathArray = filePath.split("/");
+            for (int i = 1; i < pathArray.length -1; i++) {
+                if (i != pathArray.length -2){
+                    lastPath = lastPath +"/" + pathArray[i];
+                }else {
+                    lastPath = lastPath + "/" + pathArray[i] + "/";
+                    break;
+                }
+            }
         }
+        if (StringUtils.isEmpty(lastPath)) lastPath = basePath;
         return lastPath;
     }
 

@@ -9,7 +9,7 @@ ruoyi:
   # 实例演示开关
   demoEnabled: true
   # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-  profile: F:\work\shrcb\ruoyi\uploadPath
+  profile: /home/ftppub/ruoyi/ruoyi/uploadPath
   # 获取ip地址开关
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
@@ -18,7 +18,7 @@ ruoyi:
 # 开发环境配置
 server:
   # 服务器的HTTP端口，默认为8088
-  port: 8088
+  port: 8080
   servlet:
     # 应用的访问路径
     context-path: /
@@ -37,7 +37,7 @@ server:
 logging:
   level:
     com.ruoyi: debug
-    org.springframework: warn
+    org.springframework: info
 
 # 用户配置
 user:
@@ -55,6 +55,8 @@ spring:
     suffix: .html
     charset: UTF-8
     content-type: text/html
+    settings:
+      classic_compatible: true
   # 资源信息
   messages:
     # 国际化资源文件路径
@@ -138,7 +140,9 @@ xss:
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
 
-
+file:
+  #文件地址
+  path： /home/ldq
 ##freemarker config
 #spring:
 #  freemarker:

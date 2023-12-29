@@ -87,6 +87,7 @@ function loadFtpListData() {
                         html += '<a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:delFtp(\'' + data.ftpId + '\')">删除</a>';
                         html += '<a class="layui-btn layui-btn-xs layui-btn-normal" href="javascript:openLookFtpPage(\'' + data.ftpId + '\')">详情</a>';
                         html += '<a class="layui-btn layui-btn-xs " href="/rtb/ftp/file?ftpId=' + data.ftpId + '&ftpType='+data.ftpType+'">连接</a>';
+                        html += '<a class="layui-btn layui-btn-xs " href="/file/lslist">测试</a>';
                         // html += '<a class="connect layui-btn layui-btn-xs layui-btn-danger" data-url="/rtb/ftp/file?ftpId=' + data.ftpId + '"><i class="layui-icon" data-icon="&#xe614;"></i><span><cite>测试</cite></span></a>';
                         return html;
                     }

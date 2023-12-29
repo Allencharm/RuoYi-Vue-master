@@ -1,6 +1,6 @@
 var basePath = $("#basePath").val();
-var ftpId = $("#ftpId").val();
-var ftpType = $("#ftpType").val();
+/*var ftpId = $("#ftpId").val();
+var ftpType = $("#ftpType").val();*/
 var form;
 var table;
 var lastPath;
@@ -15,8 +15,7 @@ layui.use(['form', 'table', 'upload'], function () {
     console.log("******")
     console.log( $("#showFile").val())
     console.log("******")
-
-    switch (ftpType) {
+    /*switch (ftpType) {
         case '1':
             tableUrl = basePath + '/rtb/ftp/lsfile';
             break;
@@ -25,7 +24,11 @@ layui.use(['form', 'table', 'upload'], function () {
         case '3':
             tableUrl = basePath + '/rtb/sftp/lsfile';
             break;
-    }
+        case '4':
+            tableUrl = basePath + '/file/lsfile';
+            break;
+    }*/
+    tableUrl = basePath + '/file/lslist';
     layer.load(2);
     table = layui.table;
     table.render({
@@ -34,7 +37,7 @@ layui.use(['form', 'table', 'upload'], function () {
         type: 'post',
         url: tableUrl,
         where: {
-            "ftpId": ftpId,
+            //"ftpId": ftpId,
             "showFile": $("#showFile").val()
         },
         height: 'full-120',
@@ -43,7 +46,8 @@ layui.use(['form', 'table', 'upload'], function () {
                 title: '文件名称',
                 width: '20%',
                 templet: function (data) {
-                    var fileHtml = '';
+                    console.log(data);
+                    /*var fileHtml = '';
                     if (data.fileType) {
                         fileHtml += '<span style="width: 25px">';
                         fileHtml += '<img src="' + basePath + '/image/folder.png" width="19" height="20"/>&nbsp;&nbsp;&nbsp;&nbsp;';
@@ -54,14 +58,31 @@ layui.use(['form', 'table', 'upload'], function () {
                         var fileHtml = '<img src="' + basePath + '/image/file.png" width="20" height="20"/>&nbsp;&nbsp;&nbsp;&nbsp;';
                         fileHtml += '<span>' + data.fileName + '</span>';
                         return fileHtml;
+                    }*/
+                    var fileHtml = '';
+                    data.filePath = data.filePath.replace(/\\/g,'/')
+                    if (!data.fileHidden){
+                        if (data.fileType) {
+                            var fileHtml = '<img src="' + basePath + '/image/file.png" width="20" height="20"/>&nbsp;&nbsp;&nbsp;&nbsp;';
+                            fileHtml += '<span>' + data.fileName + '</span>';
+                            return fileHtml;
+                        } else {
+                            fileHtml += '<span style="width: 25px">';
+                            fileHtml += '<img src="' + basePath + '/image/folder.png" width="19" height="20"/>&nbsp;&nbsp;&nbsp;&nbsp;';
+                            fileHtml += '</span>';
+                            fileHtml += '<a href="javascript:listNextFile(\'' + data.filePath + '\')">' + data.fileName + '</a>';
+                            return fileHtml;
+                        }
                     }
+
+
                 }
             },
             {
                 title: '文件大小',
                 width: '10%',
                 templet: function (data) {
-                    if (data.fileType) {
+                    if (!data.fileType) {
                         return "--";
                     } else {
                         return (data.fileSize / 1014).toFixed(1) + "KB";
@@ -76,11 +97,12 @@ layui.use(['form', 'table', 'upload'], function () {
                 width: '30%',
                 templet: function (data) {
                     var html = '';
+                    data.filePath = data.filePath.replace(/\\/g,'/')
                     html += '<a class="layui-btn layui-btn-xs" href="javascript:renameFile(\'' + data.fileName + '\')">重命名</a>';
                     html += '<a class="layui-btn layui-btn-xs layui-btn-normal" href="javascript:openCopyFtpPage(\'' + data.filePath + '\')">复制到</a>';
                     html += '<a class="layui-btn layui-btn-xs layui-btn-warm" href="javascript:openMoveFtpPage(\'' + data.filePath + '\')">移动到</a>';
                     html += '<a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:deleteFile(\'' + data.fileName + '\',\'' + data.fileType + '\')">删除</a>';
-                    switch (ftpType) {
+                    /*switch (ftpType) {
                         case '1':
                             break;
                         case '2':
@@ -90,6 +112,12 @@ layui.use(['form', 'table', 'upload'], function () {
                                 html += '<a class="layui-btn layui-btn-xs layui-btn-normal" href="/rtb/sftp/dodown?ftpId=' + ftpId + '&filePath=' + data.filePath + '&fileName=' + data.fileName + '">下载</a>';
                             }
                             break;
+                    }*/
+                    //html += '<a class="layui-btn layui-btn-xs layui-btn-normal" href="/file/dodown?filePath=' + data.filePath + '&fileName=' + data.fileName + '">下载</a>';
+                    if (data.fileType) {
+                        html += '<a class="layui-btn layui-btn-xs layui-btn-normal" href="/file/dodown?filePath=' + data.filePath + '&fileName=' + data.fileName + '">下载</a>';
+                    }else{
+                        html += '<div class="layui-btn layui-btn-xs layui-btn-normal" v-show="false" style="pointer-events: none; color: rgba(0,0,0,0); background: rgba(0,0,0,0);">禁止</div>'
                     }
                     return html;
                 }
@@ -113,7 +141,7 @@ function listNextFile(filePath) {
     layer.load(2);
     table.reload("fileList", {
         where: {
-            "ftpId": ftpId,
+            //"ftpId": ftpId,
             "showFile": $("#showFile").val(),
             "filePath": filePath
         },
@@ -131,6 +159,9 @@ function loadDataSuccess(res, upload) {
     console.log('path02:' + lastPath);
     console.log('path03:' + currPath);
     var html = '';
+    currPath = currPath.replace(/\\/g,'/')
+    homePath = homePath.replace(/\\/g,'/')
+    lastPath = lastPath.replace(/\\/g,'/')
     if (currPath != homePath) {
         //当前是子目录
         html += '<a style="color:blue" href="javascript:listNextFile(\'' + homePath + '\')" >主目录</a> | ';
@@ -152,7 +183,8 @@ function openUploadPage() {
     layer.open({
         title: "上传文件",
         type: 2,
-        content: basePath + '/rtb/ftp/pick?ftpId=' + ftpId + '&ftpType=' + ftpType + '&currPath=' + currPath,
+        //content: basePath + '/rtb/ftp/pick?ftpId=' + ftpId + '&ftpType=' + ftpType + '&currPath=' + currPath,
+        content: basePath + '/file/pick?currPath=' + currPath,
         area: ['400px', '300px'],
         maxmin: false,
         skin: 'layui-layer-molv',
@@ -162,7 +194,7 @@ function openUploadPage() {
 
 function openMkdirPage() {
     var mkdirUrl;
-    switch (ftpType) {
+    /*switch (ftpType) {
         case '1':
             break;
         case '2':
@@ -170,7 +202,8 @@ function openMkdirPage() {
         case '3':
             mkdirUrl = basePath + '/rtb/sftp/mkpath';
             break;
-    }
+    }*/
+    mkdirUrl = basePath + '/rtb/sftp/mkpath';
     layer.prompt(
         {
             title: '输入文件夹名称',
@@ -182,7 +215,7 @@ function openMkdirPage() {
                 type: "post",
                 url: mkdirUrl,
                 data: {
-                    'ftpId': ftpId,
+                    //'ftpId': ftpId,
                     'filePath': currPath,
                     'fileName': text,
                 },
@@ -215,7 +248,7 @@ function showHiddenFile() {
     table.reload('fileList', {
         url: tableUrl,
         where: {
-            "ftpId": ftpId,
+            //"ftpId": ftpId,
             "showFile": $("#showFile").val(),
             "filePath": currPath
         },
@@ -227,7 +260,7 @@ function showHiddenFile() {
 
 function renameFile(fileName) {
     var renameFileUrl;
-    switch (ftpType) {
+    /*switch (ftpType) {
         case '1':
             renameFileUrl = basePath + '/rtb/ftp/rename';
             break;
@@ -236,7 +269,8 @@ function renameFile(fileName) {
         case '3':
             renameFileUrl = basePath + '/rtb/sftp/rename';
             break;
-    }
+    }*/
+    renameFileUrl = basePath + '/rtb/sftp/rename';
     layer.prompt(
         {
             title: '输入新的文件夹名称',
@@ -249,7 +283,7 @@ function renameFile(fileName) {
                 type: "post",
                 url: renameFileUrl,
                 data: {
-                    'ftpId': ftpId,
+                    //'ftpId': ftpId,
                     'oldFilePath': currPath + fileName,
                     'newFilePath': currPath + text,
                     'currPath': currPath,
@@ -273,7 +307,7 @@ function renameFile(fileName) {
 
 function deleteFile(fileName, fileType) {
     var deleteFileUrl;
-    switch (ftpType) {
+    /*switch (ftpType) {
         case '1':
             break;
         case '2':
@@ -281,7 +315,8 @@ function deleteFile(fileName, fileType) {
         case '3':
             deleteFileUrl = basePath + '/rtb/sftp/rmfile';
             break;
-    }
+    }*/
+    deleteFileUrl = basePath + '/rtb/sftp/rmfile';
     var index = layer.confirm('确认删除该项？', {
         btn: ['确定', '取消']
     }, function () {
@@ -289,7 +324,7 @@ function deleteFile(fileName, fileType) {
             type: "post",
             url: deleteFileUrl,
             data: {
-                'ftpId': ftpId,
+                //'ftpId': ftpId,
                 'filePath': currPath + fileName,
                 'fileType': fileType
             },
@@ -311,7 +346,8 @@ function openCopyFtpPage(filePath) {
     layer.open({
         title: "复制文件",
         type: 2,
-        content: basePath + '/rtb/ftp/copy?ftpId=' + ftpId + '&ftpType=' + ftpType + '&filePath=' + filePath,
+        //content: basePath + '/rtb/ftp/copy?ftpId=' + ftpId + '&ftpType=' + ftpType + '&filePath=' + filePath,
+        content: basePath + '/rtb/ftp/copy?&filePath=' + filePath,
         area: ['700px', '600px'],
         maxmin: false,
         skin: 'layui-layer-molv',
@@ -324,7 +360,8 @@ function openMoveFtpPage(filePath) {
     layer.open({
         title: "移动文件",
         type: 2,
-        content: basePath + '/rtb/ftp/move?ftpId=' + ftpId + '&ftpType=' + ftpType + '&filePath=' + filePath,
+        //content: basePath + '/rtb/ftp/move?ftpId=' + ftpId + '&ftpType=' + ftpType + '&filePath=' + filePath,
+        content: basePath + '/rtb/ftp/move?filePath=' + filePath,
         area: ['700px', '600px'],
         maxmin: false,
         skin: 'layui-layer-molv',

@@ -16,8 +16,8 @@
 </head>
 <body>
 <input id="basePath" type="hidden" value="${ctx}"/>
-<input id="ftpId" type="hidden" value="${ftpId}"/>
-<input id="ftpType" type="hidden" value="${ftpType}"/>
+<!--<input id="ftpId" type="hidden" value="${ftpId}"/>-->
+<!--<input id="ftpType" type="hidden" value="${ftpType}"/>-->
 <input id="currPath" type="hidden" value="${currPath}"/>
 
 <div class="layui-upload-drag" id="uploadBtn" style="display:block;margin: 0 auto;margin-top: 50px">
@@ -31,7 +31,7 @@
     var basePath = $("#basePath").val();
     var uploadUrl;
     $(document).ready(function () {
-        switch ($("#ftpType").val()) {
+        /*switch ($("#ftpType").val()) {
             case '1':
                 break;
             case '2':
@@ -39,7 +39,8 @@
             case '3':
                 uploadUrl = basePath + '/rtb/sftp/upload';
                 break;
-        }
+        }*/
+        uploadUrl = basePath + '/file/upload';
     });
 
     layui.use('upload', function () {
@@ -50,12 +51,12 @@
             url: uploadUrl,
             accept: 'file',
             data: {
-                ftpId: $("#ftpId").val(),
+                //ftpId: $("#ftpId").val(),
                 currPath: $("#currPath").val()
             },
             done: function (res) {
                 //当文件全部被提交后才触发
-                layer.alert("上传完成", {
+                layer.alert(res.msgs, {
                     skin: 'layui-layer-molv',
                     closeBtn: 0
                 }, function () {

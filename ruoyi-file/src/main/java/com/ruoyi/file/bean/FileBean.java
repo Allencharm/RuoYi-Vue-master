@@ -22,4 +22,6 @@ public class FileBean {
     private String accessTime;
 
     private String modifyTime;
+
+    private boolean fileHidden;
 }
