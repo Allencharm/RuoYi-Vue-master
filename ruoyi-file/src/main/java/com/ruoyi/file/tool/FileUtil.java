@@ -1,6 +1,7 @@
 package com.ruoyi.file.tool;
 
 import com.jcraft.jsch.*;
+import com.ruoyi.file.bean.DataTableBean;
 import com.ruoyi.file.bean.FileBean;
 import com.ruoyi.file.bean.FtpInfo;
 import com.ruoyi.file.bean.ZTreeBean;
@@ -12,10 +13,7 @@ import org.springframework.util.StringUtils;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.sound.midi.Soundbank;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -115,6 +113,7 @@ public class FileUtil {
     /**
      * 获取目录下文件列表
      */
+/*
     public static List<FileBean> getWebFileList(ChannelSftp sftp, String ftpUser, Boolean isShow, String filePath) throws Exception {
         filePath = getCurrPath(ftpUser, filePath);
         List<ChannelSftp.LsEntry> lsFileList = sftp.ls(filePath);
@@ -158,21 +157,37 @@ public class FileUtil {
         }
         return file0List;
     }
+*/
 
     /**
      * 层状目录树集合
      */
-    private static List<FileBean> getFileTree(ChannelSftp sftp, String filePath) throws Exception {
-        List<ChannelSftp.LsEntry> lsFileList = sftp.ls(filePath);
-        List<FileBean> fileList = new ArrayList<>();
-        for (ChannelSftp.LsEntry lsEntry : lsFileList) {
-            if (".".equals(lsEntry.getFilename()) || "..".equals(lsEntry.getFilename())) {
-            } else {
-                FileBean fileBean = getWebFileBean(lsEntry, filePath);
-                if (fileBean.isFileType() && !lsEntry.getFilename().startsWith(".")) {
+    public static List<FileBean> getFileTree(List<FileBean> fileList, File[] files, String filePath){
+        try {
+            for (int i = 0 ; i < files.length ; i++){
+                FileBean fileBean = new FileBean();
+
+                fileBean.setFileName(files[i].getName());
+                if (files[i].isFile()){
+                    fileBean.setFileType(true);
+                    fileBean.setFilePath(files[i].getAbsolutePath());
+                }else {
+                    fileBean.setFileType(false);
+                    fileBean.setFilePath(files[i].getAbsolutePath() + '/');
+                }
+
+                fileBean.setFileSize(files[i].length());
+                fileBean.setAccessTime(DateUtil.timeStampToDate(System.currentTimeMillis(), DateUtil.DATE_STR_FULL));
+                fileBean.setModifyTime(DateUtil.timeStampToDate(new File(files[i].getAbsolutePath()).lastModified(), DateUtil.DATE_STR_FULL));
+                if (files[i].isHidden() || "bak".equals(files[i].getName())){
+                    fileBean.setFileHidden(true);
+                }else {
+                    fileBean.setFileHidden(false);
                     fileList.add(fileBean);
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return fileList;
     }
@@ -180,47 +195,35 @@ public class FileUtil {
     /**
      * 封装目录树集合
      */
-    public static List<ZTreeBean> getTreeList(ChannelSftp sftp, String ftpUser, String id, String path) throws Exception {
+    public static List<ZTreeBean> getTreeList(String id, String path) throws Exception {
+        String ftpUser = System.getProperty("user.name");
+        List<FileBean> fileList = new ArrayList<>();
+        String currPath = FileUtil.getCurrPath(ftpUser,path);
+        File currentDir = new File(currPath);
+        File[] files = currentDir.listFiles();
         List<ZTreeBean> fileTreeList = new ArrayList<>();
         if (StringUtils.isEmpty(id)) {
             id = KeyGeneratorUtil.getUUIDKey();
             fileTreeList.add(new ZTreeBean(id, "全部文件", FileUtil.getHomePath(ftpUser), true));
-            List<FileBean> fileList = getFileTree(sftp, FileUtil.getHomePath(ftpUser));
+            fileList = getFileTree(fileList,files,FileUtil.getHomePath(ftpUser));
             if (!fileList.isEmpty()) {
                 for (FileBean fileBean : fileList) {
-                    fileTreeList.add(new ZTreeBean(KeyGeneratorUtil.getUUIDKey(), id, fileBean.getFileName(), fileBean.getFilePath(), true));
+                    if (!fileBean.isFileType()){
+                        fileTreeList.add(new ZTreeBean(KeyGeneratorUtil.getUUIDKey(), id, fileBean.getFileName(), fileBean.getFilePath(), true));
+                    }
                 }
             }
         } else {
-            List<FileBean> fileList = getFileTree(sftp, path);
+            fileList = getFileTree(fileList,files,FileUtil.getHomePath(ftpUser));
             if (!fileList.isEmpty()) {
                 for (FileBean fileBean : fileList) {
-                    fileTreeList.add(new ZTreeBean(KeyGeneratorUtil.getUUIDKey(), id, fileBean.getFileName(), fileBean.getFilePath(), true));
+                    if (!fileBean.isFileType()) {
+                        fileTreeList.add(new ZTreeBean(KeyGeneratorUtil.getUUIDKey(), id, fileBean.getFileName(), fileBean.getFilePath(), true));
+                    }
                 }
             }
         }
         return fileTreeList;
-    }
-
-    /**
-     * 封装文件信息
-     */
-    private static FileBean getWebFileBean(ChannelSftp.LsEntry lsEntry, String basePath) {
-        SftpATTRS attrs = lsEntry.getAttrs();
-        FileBean fileBean = new FileBean();
-        fileBean.setFileName(lsEntry.getFilename());
-        fileBean.setFileSize(attrs.getSize());
-        fileBean.setFileType(attrs.isDir());
-        Integer atime = attrs.getATime();
-        Integer mtime = attrs.getMTime();
-        fileBean.setAccessTime(DateUtil.unixTimeStampToDate(atime.longValue(), DateUtil.DATE_STR_FULL));
-        fileBean.setModifyTime(DateUtil.unixTimeStampToDate(mtime.longValue(), DateUtil.DATE_STR_FULL));
-        if (fileBean.isFileType()) {
-            fileBean.setFilePath(basePath + lsEntry.getFilename() + "/");
-        } else {
-            fileBean.setFilePath(basePath + lsEntry.getFilename());
-        }
-        return fileBean;
     }
 
     /**
@@ -261,11 +264,6 @@ public class FileUtil {
             //根目录
             lastPath = basePath;
         } else {
-            /*String[] pathArray = filePath.replace(basePath, "/").split("/", -1);
-            lastPath = pathArray[pathArray.length - 2];
-            lastPath = filePath.replace(lastPath, "");
-            lastPath = lastPath.substring(0, lastPath.length() - 1);*/
-
             String[] pathArray = filePath.split("/");
             for (int i = 1; i < pathArray.length -1; i++) {
                 if (i != pathArray.length -2){

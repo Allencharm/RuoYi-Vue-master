@@ -1,4 +1,7 @@
 # 项目相关配置
+log:
+  path: /home/ftppub/ruoyi/ruoyi/logs
+
 ruoyi:
   # 名称
   name: RuoYi

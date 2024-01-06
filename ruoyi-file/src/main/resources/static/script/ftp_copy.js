@@ -2,6 +2,7 @@ var basePath = $("#basePath").val();
 var ftpId = $("#ftpId").val();
 var ftpType = $("#ftpType").val();
 var filePath = $("#filePath").val();
+var fileType = $("#fileType").val();
 
 $(document).ready(function () {
 
@@ -37,7 +38,8 @@ var zTreeSetting = {
     async: {
         enable: true, //启用异步加载
         dataType: "json",
-        url: basePath + '/rtb/sftp/mytree?ftpId=' + ftpId,
+        /*url: basePath + '/rtb/sftp/mytree?ftpId=' + ftpId,*/
+        url: basePath + '/file/mytree',
         autoParam: ["id", "path"],
         dataFilter: filter
     },
@@ -60,7 +62,7 @@ function loadFileTree() {
     layer.load(2);
     $.ajax({
         type: "get",
-        url: basePath + '/rtb/sftp/mytree?ftpId=' + ftpId,
+        url: basePath + '/file/mytree',
         sync: false,
         success: function (data) {
             $.fn.zTree.init($("#pathTree"), zTreeSetting, data.data);
@@ -72,20 +74,12 @@ function loadFileTree() {
 
 function runCopyFile() {
     var copyUrl;
-    switch (ftpType) {
-        case '1':
-            break;
-        case '2':
-            break;
-        case '3':
-            copyUrl = basePath + '/rtb/sftp/docopy';
-            break;
-    }
+    copyUrl = basePath + '/file/docopy?fileType=' + fileType;
     $.ajax({
         type: "post",
         url: copyUrl,
         data: {
-            'ftpId': ftpId,
+            //'ftpId': ftpId,
             'filePath': filePath,
             'distPath': $("#copyPath").val()
         },

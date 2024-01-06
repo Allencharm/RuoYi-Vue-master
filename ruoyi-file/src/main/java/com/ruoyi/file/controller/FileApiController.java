@@ -3,18 +3,16 @@ package com.ruoyi.file.controller;
 import com.jcraft.jsch.ChannelSftp;
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.controller.BaseController;
-import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.file.bean.DataTableBean;
 import com.ruoyi.file.bean.FileBean;
-import com.ruoyi.file.bean.FtpInfo;
 import com.ruoyi.file.bean.ResponseBean;
+import com.ruoyi.file.bean.ZTreeBean;
 import com.ruoyi.file.service.FileApiService;
-import com.ruoyi.file.service.impl.FileApiServiceImpl;
 import com.ruoyi.file.tool.*;
-import org.apache.commons.net.ftp.FTPClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.ast.Operator;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,10 +21,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author ldq
@@ -60,36 +60,15 @@ public class FileApiController extends BaseController {
     @Anonymous
     @ResponseBody
     @RequestMapping("/lslist")
-//    @WebLog(msgs = LogMsgs.FTP3_LSFILE, type = LogType.ELSE_LOG)
     public DataTableBean lsfile(String filePath) {
         DataTableBean tableData = new DataTableBean();
         String userName = System.getProperty("user.name");
-        System.out.println("当前Linux用户：" + userName);
         String currPath = FileUtil.getCurrPath(userName,filePath);
         File currentDir = new File(currPath);
         File[] files = currentDir.listFiles();
         List<FileBean> fileList = new ArrayList<>();
         try {
-            for (int i = 0 ; i < files.length ; i++){
-                FileBean fileBean = new FileBean();
-                fileBean.setFilePath(files[i].getAbsolutePath());
-                fileBean.setFileName(files[i].getName());
-                if (files[i].isFile()){
-                    fileBean.setFileType(true);
-                }else {
-                    fileBean.setFileType(false);
-                }
-
-                fileBean.setFileSize(files[i].length());
-                fileBean.setAccessTime(DateUtil.timeStampToDate(System.currentTimeMillis(), DateUtil.DATE_STR_FULL));
-                fileBean.setModifyTime(DateUtil.timeStampToDate(new File(files[i].getAbsolutePath()).lastModified(), DateUtil.DATE_STR_FULL));
-                if (files[i].isHidden()){
-                    fileBean.setFileHidden(true);
-                }else {
-                    fileBean.setFileHidden(false);
-                    fileList.add(fileBean);
-                }
-            }
+            FileUtil.getFileTree(fileList,files,filePath);
             Map<String, Object> resultMap = new HashMap<>();
             tableData.setCode(200);
             tableData.setCount((long) fileList.size());
@@ -156,6 +135,230 @@ public class FileApiController extends BaseController {
         } else {
             responseBean.setMsgs("上传文件不能为空");
             responseBean.setCode(-1);
+        }
+        return responseBean;
+    }
+
+    @Anonymous
+    @ResponseBody
+    @RequestMapping("/mkpath")
+    public ResponseBean mkpath(String filePath, String fileName) {
+        ResponseBean responseBean = new ResponseBean();
+        try {
+            /*存在问题根目录*/
+            File folder = new File(filePath + fileName);
+            if (folder.exists()){
+                responseBean.setMsgs("文件夹已存在创建失败");
+                responseBean.setCode(201);
+            }else {
+                boolean success = folder.mkdir();
+                if (success) {
+                    responseBean.setMsgs("文件夹创建成功");
+                } else {
+                    responseBean.setMsgs("文件夹创建失败");
+                }
+            }
+        } catch (SecurityException e) {
+            responseBean.setMsgs("权限不足，无法创建文件夹");
+        }catch (Exception e){
+            log.error("创建文件夹时发生异常: " + e.getMessage());
+        }
+        return responseBean;
+    }
+
+    @Anonymous
+    @ResponseBody
+    @RequestMapping("/rename")
+    public ResponseBean rename(String oldFilePath, String newFilePath) {
+        ResponseBean responseBean = new ResponseBean();
+        try {
+            if (!oldFilePath.equals(newFilePath)) {// 新的文件名和以前文件名不同时,才有必要进行重命名
+                oldFilePath.replace("\\", "/");
+                newFilePath.replace("\\", "/");
+                Path oldfile = Paths.get(oldFilePath);
+                Path newfile = Paths.get(newFilePath);
+                if (Files.exists(newfile)) {// 若在该目录下已经有一个文件和新文件名相同，则不允许重命名
+                    responseBean.setMsgs("重命名文件已经存在");
+                } else {
+                    Files.move(oldfile, newfile, StandardCopyOption.REPLACE_EXISTING);
+                    responseBean.setMsgs("文件重命名成功");
+                }
+            }else{
+                responseBean.setMsgs("新老文件名一致，重命名失败");
+            }
+        } catch (Exception e) {
+            responseBean.setMsgs("重命名失败");
+            e.printStackTrace();
+            responseBean.setCode(0);
+        }
+        return responseBean;
+    }
+
+    @Anonymous
+    @RequestMapping("/copy")
+    public ModelAndView copyFile(ModelAndView mv, String filePath,String fileType) {
+        mv.addObject("filePath", filePath);
+        mv.addObject("fileType", fileType);
+        mv.setViewName("business/ftp_copy");
+        return mv;
+    }
+
+    @Anonymous
+    @ResponseBody
+    @RequestMapping(value = "/mytree")
+    public ResponseBean mytree(String id, String path) {
+        ResponseBean responseBean = new ResponseBean();
+        List<ZTreeBean> fileTreeList = null;
+        try {
+            fileTreeList = FileUtil.getTreeList(id, path);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        responseBean.setData(fileTreeList);
+        return responseBean;
+    }
+
+    @Anonymous
+    @ResponseBody
+    @RequestMapping(value = "/docopy")
+    public ResponseBean docopy(boolean fileType, String filePath, String distPath) {
+        ResponseBean responseBean = new ResponseBean();
+        File fileFile = new File(filePath);
+        File distFile = new File(distPath);
+        try {
+            if (!distFile.exists()) {
+                distFile.mkdirs(); // 创建目标文件夹（若不存在）
+            }
+            if (fileFile.isDirectory()){
+                String replace = filePath.replace("\\", "/");
+                String[] split = replace.split("/");
+                String fileDir = split[split.length - 1];
+                distFile = new File(distFile.getPath() + "/" + fileDir);
+                distFile.mkdir();
+                if (fileFile.listFiles().length > 0){
+                    for (File file : fileFile.listFiles()) {
+                        if (file.isDirectory()) {
+                            docopy(fileType,file.getPath(), new File(distFile, file.getName()).getPath()); // 递归调用自身处理子文件夹
+                        } else {
+                            Files.copy(file.toPath(), Paths.get(distFile + "/" + file.getName()), StandardCopyOption.REPLACE_EXISTING); // 复制文件
+                        }
+                    }
+                    responseBean.setMsgs("复制成功");
+                }else {
+                    responseBean.setMsgs("复制成功");
+                }
+            }else {
+                Files.copy(fileFile.toPath(), Paths.get(distFile + "/" + fileFile.getName()), StandardCopyOption.REPLACE_EXISTING); // 复制文件
+                responseBean.setMsgs("复制成功");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseBean.setMsgs("复制失败");
+            responseBean.setCode(0);
+        }
+        return responseBean;
+    }
+
+    @Anonymous
+    @ResponseBody
+    @RequestMapping("/rmfile")
+    public ResponseBean rmfile(String distPath,String filePath) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddhhmmss");
+        ResponseBean responseBean = new ResponseBean();
+        File fileFile = new File(filePath);
+        String userName = System.getProperty("user.name");
+        String homePath = FileUtil.getHomePath(userName);
+        distPath = homePath + "bak";
+        File distFile = new File(distPath);
+        try {
+            if (!distFile.exists()) {
+                distFile.mkdirs(); // 创建目标文件夹（若不存在）
+            }
+            if (fileFile.isDirectory()){
+                String replace = filePath.replace("\\", "/");
+                String[] split = replace.split("/");
+                String fileDir = split[split.length - 1];
+                distFile = new File(distFile.getPath() + "/" + fileDir);
+                if (!distFile.exists()){
+                    distFile.mkdir();
+                }
+                if (fileFile.listFiles().length > 0){
+                    for (File file : fileFile.listFiles()) {
+                        if (file.isDirectory()) {
+                            rmfile(file.getPath(), new File(distFile, file.getName()).getPath()); // 递归调用自身处理子文件夹
+                        } else {
+                            Files.copy(file.toPath(), Paths.get(distFile + "/" + file.getName().substring(0,file.getName().lastIndexOf(".")) + "-" + simpleDateFormat.format(new Date()) + file.getName().substring(file.getName().lastIndexOf("."))), StandardCopyOption.REPLACE_EXISTING); // 复制文件
+                        }
+                        file.delete();
+                    }
+                    responseBean.setMsgs("删除成功");
+                    fileFile.delete();
+                }else {
+                    fileFile.delete();
+                    responseBean.setMsgs("删除成功");
+                }
+            }else {
+                Files.copy(fileFile.toPath(), Paths.get(distFile + "/" + fileFile.getName().substring(0,fileFile.getName().lastIndexOf(".")) + "-" + simpleDateFormat.format(new Date()) + fileFile.getName().substring(fileFile.getName().lastIndexOf("."))), StandardCopyOption.REPLACE_EXISTING); // 复制文件
+                responseBean.setMsgs("删除成功");
+                fileFile.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseBean.setMsgs("删除失败");
+            responseBean.setCode(0);
+        }
+        return responseBean;
+    }
+
+    @Anonymous
+    @RequestMapping("/move")
+    public ModelAndView moveFile(ModelAndView mv, String ftpId, String ftpType, String filePath) {
+        mv.addObject("filePath", filePath);
+        mv.setViewName("business/ftp_move");
+        return mv;
+    }
+
+    @Anonymous
+    @ResponseBody
+    @RequestMapping("/domove")
+    public ResponseBean domove(String filePath, String distPath) {
+        ResponseBean responseBean = new ResponseBean();
+        File fileFile = new File(filePath);
+        File distFile = new File(distPath);
+        try {
+            if (!distFile.exists()) {
+                distFile.mkdirs(); // 创建目标文件夹（若不存在）
+            }
+            if (fileFile.isDirectory()){
+                String replace = filePath.replace("\\", "/");
+                String[] split = replace.split("/");
+                String fileDir = split[split.length - 1];
+                distFile = new File(distFile.getPath() + "/" + fileDir);
+                distFile.mkdir();
+                if (fileFile.listFiles().length > 0){
+                    for (File file : fileFile.listFiles()) {
+                        if (file.isDirectory()) {
+                            domove(file.getPath(), new File(distFile, file.getName()).getPath()); // 递归调用自身处理子文件夹
+                        } else {
+                            Files.copy(file.toPath(), Paths.get(distFile + "/" + file.getName()), StandardCopyOption.REPLACE_EXISTING); // 复制文件
+                        }
+                        file.delete();
+                    }
+                    responseBean.setMsgs("移动成功");
+                    fileFile.delete();
+                }else {
+                    responseBean.setMsgs("移动成功");
+                    fileFile.delete();
+                }
+            }else {
+                Files.copy(fileFile.toPath(), Paths.get(distFile + "/" + fileFile.getName()), StandardCopyOption.REPLACE_EXISTING); // 复制文件
+                responseBean.setMsgs("移动成功");
+                fileFile.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseBean.setMsgs("复制失败");
+            responseBean.setCode(0);
         }
         return responseBean;
     }
